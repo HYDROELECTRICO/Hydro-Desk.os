@@ -1,0 +1,19 @@
+#!/bin/sh
+set -eu
+
+# Keep the graphical system user-facing minimal: only the two launchers should
+# be visible on the desktop. Debian base utilities remain underneath because a
+# live Linux system needs them to boot and mount devices.
+
+chmod 0755 /etc/skel/Desktop
+chmod 0755 /etc/skel/Desktop/*.desktop
+chmod 0644 /etc/xdg/openbox/menu.xml /etc/xdg/openbox/rc.xml /etc/xdg/openbox/autostart
+chmod 0644 /etc/xdg/pcmanfm/hydro-desk/desktop-items-0.conf
+chmod 0644 /etc/skel/.bash_profile
+chmod 0755 /etc/skel/.xinitrc
+
+# Prevent package-created desktop shortcuts from appearing globally.
+find /usr/share/applications -type f \
+  ! -name 'google-chrome.desktop' \
+  ! -name 'pcmanfm.desktop' \
+  -exec sh -c 'printf "\nNoDisplay=true\n" >> "$1"' sh {} \;

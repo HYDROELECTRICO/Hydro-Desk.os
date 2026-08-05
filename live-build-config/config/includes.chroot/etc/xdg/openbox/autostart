@@ -1,0 +1,2 @@
+# Hydro Desk OS desktop: show only file/browser launchers from ~/Desktop.
+pcmanfm --desktop --profile hydro-desk &

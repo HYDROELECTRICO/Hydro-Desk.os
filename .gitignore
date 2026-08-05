@@ -1,0 +1,13 @@
+# Live-build working directories and generated images
+.build/
+build/
+out/
+*.iso
+*.img
+*.log
+*.sha256
+
+# Editor/OS noise
+.DS_Store
+.idea/
+.vscode/

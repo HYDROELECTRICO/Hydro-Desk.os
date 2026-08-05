@@ -1,0 +1,35 @@
+# Hydro Desk OS intentionally exposes only two graphical applications:
+# Google Chrome and PCManFM file manager.
+# The remaining packages are the minimum OS plumbing for live boot, graphics,
+# networking, USB/media mounting, fonts, and the automatic X session.
+
+linux-image-amd64
+live-boot
+live-config
+systemd-sysv
+sudo
+locales
+
+xserver-xorg
+xinit
+x11-xserver-utils
+dbus-x11
+openbox
+pcmanfm
+shared-mime-info
+desktop-file-utils
+xdg-user-dirs
+adwaita-icon-theme
+hicolor-icon-theme
+fonts-dejavu-core
+fonts-liberation
+fonts-noto-core
+fonts-noto-color-emoji
+
+ca-certificates
+network-manager
+wpasupplicant
+udisks2
+gvfs
+gvfs-backends
+polkitd

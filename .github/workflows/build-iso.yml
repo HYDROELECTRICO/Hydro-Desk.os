@@ -1,0 +1,107 @@
+name: Build Hydro Desk OS ISO
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish_release:
+        description: "Also publish the ISO to a GitHub Release"
+        required: true
+        type: boolean
+        default: false
+      release_tag:
+        description: "Release tag to create/use when publish_release is true"
+        required: false
+        type: string
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/build-iso.yml
+      - live-build-config/**
+      - scripts/**
+      - README.md
+      - docs/**
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: hydro-desk-iso-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-iso:
+    name: Build bootable ISO
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Free runner disk space
+        run: |
+          set -euxo pipefail
+          df -h
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL || true
+          df -h
+
+      - name: Build Hydro Desk OS ISO
+        run: |
+          set -euxo pipefail
+          ./scripts/build-iso.sh --install-deps --clean
+          sha256sum -c out/hydro-desk-os-amd64.iso.sha256
+          ls -lh out/
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hydro-desk-os-amd64-${{ github.run_number }}
+          path: |
+            out/hydro-desk-os-amd64.iso
+            out/hydro-desk-os-amd64.iso.sha256
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+
+      - name: Decide release tag
+        id: release
+        if: startsWith(github.ref, 'refs/tags/') || github.event.inputs.publish_release == 'true'
+        env:
+          REQUESTED_RELEASE_TAG: ${{ github.event.inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            tag="${GITHUB_REF_NAME}"
+          elif [[ -n "${REQUESTED_RELEASE_TAG}" ]]; then
+            tag="${REQUESTED_RELEASE_TAG}"
+          else
+            tag="iso-${GITHUB_RUN_NUMBER}"
+          fi
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/') || github.event.inputs.publish_release == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          fail_on_unmatched_files: true
+          name: Hydro Desk OS ${{ steps.release.outputs.tag }}
+          body: |
+            Bootable Hydro Desk OS live ISO.
+
+            User-facing applications included:
+            - Google Chrome
+            - File Manager
+
+            Download `hydro-desk-os-amd64.iso`, write it to a USB drive, and boot from USB.
+          files: |
+            out/hydro-desk-os-amd64.iso
+            out/hydro-desk-os-amd64.iso.sha256

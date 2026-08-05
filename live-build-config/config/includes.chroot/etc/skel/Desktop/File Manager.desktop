@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=File Manager
+Comment=Browse files and removable drives
+Exec=pcmanfm %U
+Icon=system-file-manager
+Terminal=false
+Categories=System;FileManager;
+StartupNotify=true

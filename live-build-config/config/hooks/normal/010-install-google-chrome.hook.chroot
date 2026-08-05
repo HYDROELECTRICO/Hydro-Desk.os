@@ -1,0 +1,25 @@
+#!/bin/sh
+set -eu
+
+# Install the official Google Chrome Stable package at image-build time.
+# wget and gnupg are temporary build helpers and are removed again below so the
+# live OS stays focused on only Chrome plus the file manager.
+export DEBIAN_FRONTEND=noninteractive
+
+apt-get update
+apt-get install -y --no-install-recommends ca-certificates wget gnupg
+
+install -d -m 0755 /usr/share/keyrings
+wget -qO- https://dl.google.com/linux/linux_signing_key.pub \
+  | gpg --dearmor -o /usr/share/keyrings/google-linux-signing-key.gpg
+chmod 0644 /usr/share/keyrings/google-linux-signing-key.gpg
+
+cat > /etc/apt/sources.list.d/google-chrome.list <<'CHROME_REPO'
+deb [arch=amd64 signed-by=/usr/share/keyrings/google-linux-signing-key.gpg] https://dl.google.com/linux/chrome/deb/ stable main
+CHROME_REPO
+
+apt-get update
+apt-get install -y --no-install-recommends google-chrome-stable
+
+apt-get purge -y --auto-remove wget gnupg
+rm -rf /var/lib/apt/lists/*

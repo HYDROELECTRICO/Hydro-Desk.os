@@ -1,0 +1,17 @@
+#!/bin/sh
+set -eu
+
+lb config noauto \
+  --mode debian \
+  --distribution bookworm \
+  --architectures amd64 \
+  --archive-areas "main contrib non-free non-free-firmware" \
+  --binary-images iso-hybrid \
+  --debian-installer false \
+  --memtest none \
+  --apt-recommends false \
+  --iso-application "Hydro Desk OS" \
+  --iso-publisher "HYDROELECTRICO" \
+  --iso-volume "HYDRO_DESK_OS" \
+  --bootappend-live "boot=live components username=hydro hostname=hydro-desk locales=en_US.UTF-8 keyboard-layouts=us timezone=UTC quiet splash" \
+  "${@}"

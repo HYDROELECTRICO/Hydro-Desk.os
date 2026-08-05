@@ -1,0 +1,12 @@
+#!/bin/sh
+set -eu
+
+# Remove build caches and nonessential manuals. Keep package copyright/license
+# files so redistributed images remain traceable.
+apt-get clean
+rm -rf /tmp/* /var/tmp/* /var/cache/apt/archives/*.deb /var/lib/apt/lists/*
+rm -rf /usr/share/man/* /usr/share/info/*
+if [ -d /usr/share/doc ]; then
+  find /usr/share/doc -type f ! -name copyright -delete
+  find /usr/share/doc -type d -empty -delete
+fi

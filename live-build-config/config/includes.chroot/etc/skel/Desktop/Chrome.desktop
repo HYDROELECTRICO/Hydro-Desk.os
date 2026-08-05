@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Chrome
+Comment=Web browser
+Exec=google-chrome-stable --no-first-run --disable-default-apps --disable-translate
+Icon=google-chrome
+Terminal=false
+Categories=Network;WebBrowser;
+StartupNotify=true

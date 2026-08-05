@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openbox_config xmlns="http://openbox.org/3.4/rc">
+  <resistance>
+    <strength>10</strength>
+    <screen_edge_strength>20</screen_edge_strength>
+  </resistance>
+  <focus>
+    <focusNew>yes</focusNew>
+    <followMouse>no</followMouse>
+    <focusLast>yes</focusLast>
+    <underMouse>no</underMouse>
+    <focusDelay>200</focusDelay>
+    <raiseOnFocus>no</raiseOnFocus>
+  </focus>
+  <placement>
+    <policy>Smart</policy>
+    <center>yes</center>
+    <monitor>Primary</monitor>
+    <primaryMonitor>1</primaryMonitor>
+  </placement>
+  <theme>
+    <name>Clearlooks</name>
+    <titleLayout>NLIMC</titleLayout>
+    <keepBorder>yes</keepBorder>
+    <animateIconify>no</animateIconify>
+    <font place="ActiveWindow"><name>sans</name><size>10</size><weight>bold</weight><slant>normal</slant></font>
+    <font place="InactiveWindow"><name>sans</name><size>10</size><weight>bold</weight><slant>normal</slant></font>
+    <font place="MenuHeader"><name>sans</name><size>10</size><weight>bold</weight><slant>normal</slant></font>
+    <font place="MenuItem"><name>sans</name><size>10</size><weight>normal</weight><slant>normal</slant></font>
+    <font place="OnScreenDisplay"><name>sans</name><size>10</size><weight>bold</weight><slant>normal</slant></font>
+  </theme>
+  <desktops>
+    <number>1</number>
+    <firstdesk>1</firstdesk>
+    <popupTime>0</popupTime>
+  </desktops>
+  <resize>
+    <drawContents>yes</drawContents>
+    <popupShow>Never</popupShow>
+  </resize>
+  <margins>
+    <top>0</top><bottom>0</bottom><left>0</left><right>0</right>
+  </margins>
+  <dock>
+    <position>TopLeft</position>
+    <floatingX>0</floatingX><floatingY>0</floatingY>
+    <noStrut>yes</noStrut>
+    <stacking>Below</stacking>
+    <direction>Vertical</direction>
+    <autoHide>yes</autoHide>
+  </dock>
+  <keyboard>
+    <chainQuitKey>C-g</chainQuitKey>
+    <keybind key="W-c"><action name="Execute"><command>google-chrome-stable --no-first-run --disable-default-apps --disable-translate</command></action></keybind>
+    <keybind key="W-f"><action name="Execute"><command>pcmanfm</command></action></keybind>
+  </keyboard>
+  <mouse>
+    <dragThreshold>1</dragThreshold>
+    <doubleClickTime>500</doubleClickTime>
+    <screenEdgeWarpTime>0</screenEdgeWarpTime>
+    <context name="Root">
+      <mousebind button="Right" action="Press"><action name="ShowMenu"><menu>root-menu</menu></action></mousebind>
+    </context>
+    <context name="Titlebar">
+      <mousebind button="Left" action="Drag"><action name="Move"/></mousebind>
+      <mousebind button="Left" action="DoubleClick"><action name="ToggleMaximize"/></mousebind>
+    </context>
+  </mouse>
+  <menu>
+    <file>menu.xml</file>
+    <hideDelay>200</hideDelay>
+    <middle>no</middle>
+    <submenuShowDelay>100</submenuShowDelay>
+    <applicationIcons>yes</applicationIcons>
+  </menu>
+</openbox_config>

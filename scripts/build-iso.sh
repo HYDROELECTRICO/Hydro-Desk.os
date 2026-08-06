@@ -119,6 +119,48 @@ if ! command -v lb >/dev/null 2>&1; then
   exit 1
 fi
 
+# Patch live-build for bookworm Contents path bug (old live-build 3.0~a57 expects Contents at dists/<dist>/Contents- but bookworm moved to dists/<dist>/main/Contents-)
+{
+  echo "=== Patching live-build Contents path bug for bookworm ==="
+  # Show current file before patch
+  for f in /usr/lib/live/build/lb_chroot_linux-image /usr/share/live/build/lb_chroot_linux-image /usr/lib/live/build/chroot_linux-image /usr/share/live/build/chroot_linux-image; do
+    if [[ -f "$f" ]]; then
+      echo "--- Found $f ---"
+      grep -n "Contents" "$f" | head -n 20 || true
+    fi
+  done
+  # Patch all files that contain the old Contents path
+  for base in /usr/lib/live/build /usr/share/live/build; do
+    if [[ -d "$base" ]]; then
+      for f in "$base"/*; do
+        if [[ -f "$f" ]] && grep -q "Contents-" "$f" 2>/dev/null; then
+          echo "Patching $f"
+          # Replace /dists/<dist>/Contents- with /dists/<dist>/main/Contents- (handle both LB_DISTRIBUTION and LB_PARENT_DISTRIBUTION)
+          sudo sed -i 's|/dists/${LB_PARENT_DISTRIBUTION}/Contents-|/dists/${LB_PARENT_DISTRIBUTION}/main/Contents-|g' "$f" 2>&1 || true
+          sudo sed -i 's|/dists/${LB_DISTRIBUTION}/Contents-|/dists/${LB_DISTRIBUTION}/main/Contents-|g' "$f" 2>&1 || true
+          # Generic fallback: any /dists/<something>/Contents- -> /dists/<something>/main/Contents- if not already containing /main/
+          # Use a more generic pattern to catch any remaining
+          if grep -q "/dists/.*/Contents-" "$f" 2>/dev/null; then
+            # Use perl to avoid double-patching already patched lines
+            sudo perl -pi -e 's|(/dists/[^/]+)/Contents-|$1/main/Contents-|g unless m|/main/Contents-|' "$f" 2>&1 || true
+          fi
+          echo "After patch grep:"
+          grep -n "Contents" "$f" | head -n 20 || true
+        fi
+      done
+    fi
+  done
+  echo "=== Testing Contents URL fetch (should be main/Contents) ==="
+  echo "--- Testing deb.debian.org bookworm main Contents ---"
+  wget --spider -v http://deb.debian.org/debian/dists/bookworm/main/Contents-amd64.gz 2>&1 | head -n 30 || true
+  curl -Is http://deb.debian.org/debian/dists/bookworm/main/Contents-amd64.gz 2>&1 | head -n 30 || true
+  echo "--- Testing old path (should 404) ---"
+  wget --spider -v http://deb.debian.org/debian/dists/bookworm/Contents-amd64.gz 2>&1 | head -n 30 || true
+  curl -Is http://deb.debian.org/debian/dists/bookworm/Contents-amd64.gz 2>&1 | head -n 30 || true
+  echo "=== Patching done ==="
+} >> "$DIAG_DIR/preflight.txt" 2>&1 || true
+cat "$DIAG_DIR/preflight.txt" | tail -n 100 || true
+
 # Preflight diagnostic: lb help and auto/config validation
 {
   echo "=== PREFLIGHT DIAGNOSTIC ==="

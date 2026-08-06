@@ -182,8 +182,35 @@ cat "$DIAG_DIR/preflight.txt" | tail -n 100 || true
   echo "--- archives ---"
   ls -la "$CONFIG_DIR/config/archives/" || true
   cat "$CONFIG_DIR/config/archives/"* || true
-} > "$DIAG_DIR/preflight.txt" 2>&1 || true
+} >> "$DIAG_DIR/preflight.txt" 2>&1 || true
 cat "$DIAG_DIR/preflight.txt" || true
+
+# Patch isohybrid path for binary iso (host has /usr/bin/isohybrid from syslinux-utils, but live-build may call isohybrid without full path)
+{
+  echo "=== Patching isohybrid path for binary iso ==="
+  which isohybrid 2>&1 || true
+  ls -l /usr/bin/isohybrid /bin/isohybrid 2>&1 | head -n 20 || true
+  for base in /usr/lib/live/build /usr/share/live/build; do
+    if [[ -d "$base" ]]; then
+      for f in "$base"/*; do
+        if [[ -f "$f" ]] && grep -q "isohybrid" "$f" 2>/dev/null; then
+          echo "--- Found isohybrid in $f ---"
+          grep -n "isohybrid" "$f" 2>&1 | head -n 20 || true
+          echo "Patching $f to use full path"
+          sudo sed -i 's|\<isohybrid\>|/usr/bin/isohybrid|g' "$f" 2>&1 || true
+          # Avoid double patch
+          sudo sed -i 's|/usr/bin//usr/bin/isohybrid|/usr/bin/isohybrid|g' "$f" 2>&1 || true
+          grep -n "isohybrid" "$f" 2>&1 | head -n 20 || true
+        fi
+      done
+    fi
+  done
+  # Also ensure isohybrid is in PATH for sudo
+  sudo ln -sf /usr/bin/isohybrid /bin/isohybrid 2>&1 || true
+  sudo ln -sf /usr/bin/isohybrid /usr/local/bin/isohybrid 2>&1 || true
+  echo "=== isohybrid patch done ==="
+} >> "$DIAG_DIR/preflight.txt" 2>&1 || true
+cat "$DIAG_DIR/preflight.txt" | tail -n 80 || true
 
 if [[ "$CLEAN" -eq 1 ]]; then
   sudo rm -rf "$WORK_DIR"

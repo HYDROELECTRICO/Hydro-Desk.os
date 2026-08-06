@@ -120,7 +120,6 @@ if ! command -v lb >/dev/null 2>&1; then
 fi
 
 # Patch live-build for bookworm Contents path bug (old live-build 3.0~a57 expects Contents at dists/<dist>/Contents- but bookworm moved to dists/<dist>/main/Contents-)
-# Also fix syslinux/isolinux path handling for newer Debian layout
 {
   echo "=== Patching live-build Contents path bug for bookworm ==="
   # Show current file before patch
@@ -159,39 +158,8 @@ fi
   wget --spider -v http://deb.debian.org/debian/dists/bookworm/Contents-amd64.gz 2>&1 | head -n 30 || true
   curl -Is http://deb.debian.org/debian/dists/bookworm/Contents-amd64.gz 2>&1 | head -n 30 || true
   echo "=== Patching done ==="
-  echo "=== Patching syslinux/isolinux path handling ==="
-  # Host syslinux files locations (bookworm moved to /usr/lib/syslinux and /usr/lib/ISOLINUX)
-  echo "--- Host isolinux/syslinux locations ---"
-  ls -la /usr/lib/ISOLINUX/ 2>&1 | head -n 30 || true
-  ls -la /usr/lib/syslinux/ 2>&1 | head -n 30 || true
-  ls -la /usr/lib/syslinux/modules/bios/ 2>&1 | head -n 30 || true
-  ls -la /usr/share/syslinux/ 2>&1 | head -n 30 || true
-  # Find all live-build syslinux scripts
-  for f in /usr/lib/live/build/*syslinux* /usr/share/live/build/*syslinux* 2>/dev/null; do
-    if [[ -f "$f" ]]; then
-      echo "--- Syslinux script $f before patch ---"
-      grep -n "isolinux\|syslinux\|vesamenu\|ldlinux" "$f" 2>&1 | head -n 50 || true
-      # Patch: ensure it looks in correct host paths. Some old scripts look in /usr/lib/syslinux but bookworm uses /usr/lib/ISOLINUX for isolinux.bin
-      # Also handle /root/isolinux path that appeared in failure
-      sudo sed -i 's|/root/isolinux|/usr/lib/ISOLINUX|g' "$f" 2>&1 || true
-      sudo sed -i 's|/usr/lib/syslinux/vesamenu.c32|/usr/lib/syslinux/modules/bios/vesamenu.c32|g' "$f" 2>&1 || true
-      sudo sed -i 's|/usr/lib/syslinux/ldlinux.c32|/usr/lib/syslinux/modules/bios/ldlinux.c32|g' "$f" 2>&1 || true
-      echo "--- After patch ---"
-      grep -n "isolinux\|syslinux\|vesamenu\|ldlinux" "$f" 2>&1 | head -n 50 || true
-    fi
-  done
-  # Also check binary_syslinux script content for copy commands
-  for base in /usr/lib/live/build /usr/share/live/build; do
-    for f in "$base"/lb_binary* "$base"/binary* 2>/dev/null; do
-      if [[ -f "$f" ]] && grep -q "isolinux" "$f" 2>/dev/null; then
-        echo "--- Checking $f for isolinux copy logic ---"
-        grep -n "cp.*isolinux\|install.*isolinux" "$f" 2>&1 | head -n 30 || true
-      fi
-    done
-  done
-  echo "=== Syslinux patching done ==="
 } >> "$DIAG_DIR/preflight.txt" 2>&1 || true
-cat "$DIAG_DIR/preflight.txt" | tail -n 150 || true
+cat "$DIAG_DIR/preflight.txt" | tail -n 100 || true
 
 # Preflight diagnostic: lb help and auto/config validation
 {

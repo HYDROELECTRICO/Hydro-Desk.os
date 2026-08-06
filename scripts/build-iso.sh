@@ -192,20 +192,19 @@ cat "$DIAG_DIR/preflight.txt" || true
   ls -l /usr/bin/isohybrid /bin/isohybrid 2>&1 | head -n 20 || true
   for base in /usr/lib/live/build /usr/share/live/build; do
     if [[ -d "$base" ]]; then
-      for f in "$base"/*; do
-        if [[ -f "$f" ]] && grep -q "isohybrid" "$f" 2>/dev/null; then
+      find "$base" -type f 2>/dev/null | while read -r f; do
+        if grep -q "isohybrid" "$f" 2>/dev/null; then
           echo "--- Found isohybrid in $f ---"
           grep -n "isohybrid" "$f" 2>&1 | head -n 20 || true
           echo "Patching $f to use full path"
           sudo sed -i 's|\<isohybrid\>|/usr/bin/isohybrid|g' "$f" 2>&1 || true
-          # Avoid double patch
           sudo sed -i 's|/usr/bin//usr/bin/isohybrid|/usr/bin/isohybrid|g' "$f" 2>&1 || true
           grep -n "isohybrid" "$f" 2>&1 | head -n 20 || true
         fi
       done
     fi
   done
-  # Also ensure isohybrid is in PATH for sudo
+  # Also ensure isohybrid is in PATH for sudo and patch generated binary.sh after lb config (if exists)
   sudo ln -sf /usr/bin/isohybrid /bin/isohybrid 2>&1 || true
   sudo ln -sf /usr/bin/isohybrid /usr/local/bin/isohybrid 2>&1 || true
   echo "=== isohybrid patch done ==="

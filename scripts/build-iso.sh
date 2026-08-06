@@ -106,11 +106,14 @@ mkdir -p "$DIAG_DIR"
 
 if [[ "$INSTALL_DEPS" -eq 1 ]]; then
   sudo apt-get update 2>&1 | tee "$DIAG_DIR/apt-update.log" || true
-  sudo apt-get install -y --no-install-recommends live-build xorriso isolinux syslinux syslinux-common squashfs-tools grub-pc-bin grub-efi-amd64-bin mtools dosfstools 2>&1 | tee "$DIAG_DIR/apt-install.log" || {
+  sudo apt-get install -y --no-install-recommends live-build xorriso isolinux syslinux syslinux-common syslinux-utils squashfs-tools grub-pc-bin grub-efi-amd64-bin mtools dosfstools 2>&1 | tee "$DIAG_DIR/apt-install.log" || {
     echo "apt install failed, collecting diagnostics" >&2
     collect_and_push_diagnostics 1
     exit 1
   }
+  # Verify isohybrid is available (from syslinux-utils)
+  which isohybrid 2>&1 | tee -a "$DIAG_DIR/apt-install.log" || echo "isohybrid not found after install" | tee -a "$DIAG_DIR/apt-install.log"
+  ls -l /usr/bin/isohybrid 2>&1 | tee -a "$DIAG_DIR/apt-install.log" || true
 fi
 
 if ! command -v lb >/dev/null 2>&1; then

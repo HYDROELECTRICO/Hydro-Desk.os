@@ -59,7 +59,11 @@ fi
 
 sudo rm -rf "$WORK_DIR/auto" "$WORK_DIR/config" "$WORK_DIR/local"
 sudo find "$WORK_DIR" -maxdepth 1 -type f -name '*.iso' -delete 2>/dev/null || true
+sudo find "$WORK_DIR" -maxdepth 1 -type f -name '*.sha256' -delete 2>/dev/null || true
 (cd "$CONFIG_DIR" && tar cf - .) | (cd "$WORK_DIR" && tar xpf -)
+# Ensure live-build's auto/config is executable
+chmod +x "$WORK_DIR/auto/config" 2>/dev/null || true
+sudo chmod +x "$WORK_DIR/auto/config" 2>/dev/null || true
 
 pushd "$WORK_DIR" >/dev/null
 lb config
@@ -69,12 +73,16 @@ popd >/dev/null
 ISO_PATH="$(find "$WORK_DIR" -maxdepth 1 -type f -name '*.iso' | head -n 1)"
 if [[ -z "${ISO_PATH:-}" ]]; then
   echo "Build finished but no ISO was found in $WORK_DIR" >&2
+  ls -la "$WORK_DIR" >&2 || true
   exit 1
 fi
 
 sudo cp "$ISO_PATH" "$OUT_DIR/$ISO_NAME"
 sudo chown "$(id -u):$(id -g)" "$OUT_DIR/$ISO_NAME"
 (cd "$OUT_DIR" && sha256sum "$ISO_NAME" > "$ISO_NAME.sha256")
+# Verify the checksum file is valid
+(cd "$OUT_DIR" && sha256sum -c "$ISO_NAME.sha256")
 
 echo "Built: $OUT_DIR/$ISO_NAME"
 echo "SHA256: $OUT_DIR/$ISO_NAME.sha256"
+ls -lh "$OUT_DIR/$ISO_NAME" "$OUT_DIR/$ISO_NAME.sha256"

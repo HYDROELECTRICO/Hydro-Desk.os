@@ -10,16 +10,49 @@ apt-get update
 apt-get install -y --no-install-recommends ca-certificates wget gnupg
 
 install -d -m 0755 /usr/share/keyrings
-wget -qO- https://dl.google.com/linux/linux_signing_key.pub \
-  | gpg --dearmor -o /usr/share/keyrings/google-linux-signing-key.gpg
+
+# Fetch Google's signing key with retries (transient network failures should not break CI).
+# Prefer wget; fall back to curl if wget is unavailable.
+set +e
+i=1
+max=5
+while [ "$i" -le "$max" ]; do
+  if command -v wget >/dev/null 2>&1; then
+    wget --timeout=30 --tries=3 -qO- https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-linux-signing-key.gpg
+    rc=$?
+  elif command -v curl >/dev/null 2>&1; then
+    curl -fsSL --connect-timeout 30 --retry 3 https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-linux-signing-key.gpg
+    rc=$?
+  else
+    rc=1
+  fi
+  if [ "$rc" -eq 0 ] && [ -s /usr/share/keyrings/google-linux-signing-key.gpg ]; then
+    break
+  fi
+  echo "Warning: failed to fetch Google signing key (attempt $i/$max), retrying..." >&2
+  sleep $((i * 3))
+  i=$((i + 1))
+done
+set -e
+
+if [ ! -s /usr/share/keyrings/google-linux-signing-key.gpg ]; then
+  echo "ERROR: could not fetch Google Linux signing key after $max attempts" >&2
+  exit 1
+fi
 chmod 0644 /usr/share/keyrings/google-linux-signing-key.gpg
 
 cat > /etc/apt/sources.list.d/google-chrome.list <<'CHROME_REPO'
 deb [arch=amd64 signed-by=/usr/share/keyrings/google-linux-signing-key.gpg] https://dl.google.com/linux/chrome/deb/ stable main
 CHROME_REPO
+chmod 0644 /etc/apt/sources.list.d/google-chrome.list
 
 apt-get update
 apt-get install -y --no-install-recommends google-chrome-stable
 
-apt-get purge -y --auto-remove wget gnupg
-rm -rf /var/lib/apt/lists/*
+# Keep the live image minimal but do not break later live-build stages:
+# purge the temporary helpers and clean apt caches without deleting the
+# entire apt lists directory (live-build's binary stage may need it).
+apt-get purge -y --auto-remove wget gnupg || true
+apt-get clean
+rm -rf /var/cache/apt/archives/*.deb 2>/dev/null || true
+# Do NOT rm -rf /var/lib/apt/lists/* here; leave it for live-build.

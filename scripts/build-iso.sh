@@ -158,8 +158,44 @@ fi
   wget --spider -v http://deb.debian.org/debian/dists/bookworm/Contents-amd64.gz 2>&1 | head -n 30 || true
   curl -Is http://deb.debian.org/debian/dists/bookworm/Contents-amd64.gz 2>&1 | head -n 30 || true
   echo "=== Patching done ==="
+  echo "=== Patching syslinux binary stage (isolinux missing) ==="
+  echo "--- Host syslinux locations ---"
+  ls -la /usr/lib/ISOLINUX/ 2>&1 | head -n 20 || true
+  ls -la /usr/lib/syslinux/ 2>&1 | head -n 20 || true
+  ls -la /usr/lib/syslinux/modules/bios/ 2>&1 | head -n 30 || true
+  for f in /usr/lib/live/build/* /usr/share/live/build/*; do
+    if [[ -f "$f" ]] && grep -q "syslinux" "$f" 2>/dev/null; then
+      if grep -q "mtools.*syslinux" "$f" 2>/dev/null || grep -q "syslinux.*mtools" "$f" 2>/dev/null; then
+        echo "--- Found candidate $f ---"
+        grep -n "mtools\|syslinux\|isolinux" "$f" 2>&1 | head -n 30 || true
+        # Ensure isolinux is included in the apt install for binary syslinux stage
+        if ! grep -q "isolinux.*syslinux" "$f" 2>/dev/null; then
+          echo "Patching $f to include isolinux"
+          sudo sed -i 's/mtools syslinux/mtools isolinux syslinux/g' "$f" 2>&1 || true
+          sudo sed -i 's/syslinux syslinux-common/isolinux syslinux syslinux-common/g' "$f" 2>&1 || true
+          # Avoid duplicate if already patched
+          sudo sed -i 's/isolinux isolinux/isolinux/g' "$f" 2>&1 || true
+          grep -n "mtools\|syslinux\|isolinux" "$f" 2>&1 | head -n 30 || true
+        fi
+      fi
+    fi
+  done
+  for f in /usr/lib/live/build/*syslinux* /usr/share/live/build/*syslinux* 2>/dev/null; do
+    if [[ -f "$f" ]]; then
+      echo "--- Checking syslinux script $f for path fixes ---"
+      grep -n "vesamenu\|ldlinux\|isolinux" "$f" 2>&1 | head -n 30 || true
+      sudo sed -i 's|/usr/lib/syslinux/vesamenu.c32|/usr/lib/syslinux/modules/bios/vesamenu.c32|g' "$f" 2>&1 || true
+      sudo sed -i 's|/usr/lib/syslinux/ldlinux.c32|/usr/lib/syslinux/modules/bios/ldlinux.c32|g' "$f" 2>&1 || true
+      if grep -q "/root/isolinux" "$f" 2>/dev/null; then
+        echo "Fixing /root/isolinux in $f"
+        sudo sed -i 's|/root/isolinux|/usr/lib/ISOLINUX|g' "$f" 2>&1 || true
+      fi
+      grep -n "vesamenu\|ldlinux\|isolinux" "$f" 2>&1 | head -n 30 || true
+    fi
+  done
+  echo "=== Syslinux patching done ==="
 } >> "$DIAG_DIR/preflight.txt" 2>&1 || true
-cat "$DIAG_DIR/preflight.txt" | tail -n 100 || true
+cat "$DIAG_DIR/preflight.txt" | tail -n 150 || true
 
 # Preflight diagnostic: lb help and auto/config validation
 {

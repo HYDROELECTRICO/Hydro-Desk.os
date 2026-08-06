@@ -1,0 +1,251 @@
+=== system info ===
+Distributor ID:	Ubuntu
+Description:	Ubuntu 24.04.4 LTS
+Release:	24.04
+Codename:	noble
+Linux runnervmvrwv9 6.17.0-1020-azure #20~24.04.1-Ubuntu SMP Fri Jun 19 20:09:14 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/root       145G   44G  101G  31% /
+tmpfs           7.9G   84K  7.9G   1% /dev/shm
+tmpfs           3.2G 1012K  3.2G   1% /run
+tmpfs           5.0M     0  5.0M   0% /run/lock
+efivarfs        128M   32K  128M   1% /sys/firmware/efi/efivars
+/dev/sda16      881M   64M  756M   8% /boot
+/dev/sda15      105M  6.2M   99M   6% /boot/efi
+tmpfs           1.6G   12K  1.6G   1% /run/user/1001
+=== auto/config ===
+#!/bin/sh
+set -eu
+
+lb config noauto \
+  --mode debian \
+  --distribution bookworm \
+  --architectures amd64 \
+  --archive-areas "main contrib non-free non-free-firmware" \
+  --binary-images iso-hybrid \
+  --bootloader grub \
+  --debian-installer false \
+  --memtest none \
+  --apt-recommends false \
+  --mirror-bootstrap "http://deb.debian.org/debian" \
+  --mirror-chroot "http://deb.debian.org/debian" \
+  --mirror-binary "http://deb.debian.org/debian" \
+  --mirror-chroot-security "http://security.debian.org/debian-security" \
+  --mirror-binary-security "http://security.debian.org/debian-security" \
+  --security false \
+  --iso-application "Hydro Desk OS" \
+  --iso-publisher "HYDROELECTRICO" \
+  --iso-volume "HYDRO_DESK_OS" \
+  --bootappend-live "boot=live components username=hydro hostname=hydro-desk locales=en_US.UTF-8 keyboard-layouts=us timezone=UTC quiet splash" \
+  "${@}"
+=== live-build help ===
+[2026-08-06 05:32:48] lb_config --help
+lb config - create configuration for live-build(7)
+
+Usage:
+
+lb config   [--apt apt|aptitude]
+	    [--apt-ftp-proxy URL]
+	    [--apt-http-proxy URL]
+	    [--apt-indices true|false|none]
+	    [--apt-options OPTION|"OPTIONS"]
+	    [--aptitude-options OPTION|"OPTIONS"]
+	    [--apt-pipeline DEPTH]
+	    [--apt-recommends true|false]
+	    [--apt-secure true|false]
+	    [--apt-source-archives true|false]
+	    [-a|--architectures ARCHITECTURE]
+	    [-b|--binary-images iso|iso-hybrid|netboot|tar|hdd]
+	    [--binary-filesystem fat16|fat32|ext2|ext3|ext4|ntfs]
+	    [--bootappend-install PARAMETER|"PARAMETERS"]
+	    [--bootappend-live PARAMETER|"PARAMETERS"]
+	    [--bootappend-failsafe PARAMETER|"PARAMETERS"]
+	    [--bootloader grub|syslinux|yaboot]
+	    [--bootstrap cdebootstrap|cdebootstrap-static|debootstrap|copy]
+	    [-f|--bootstrap-flavour minimal|standard]
+	    [--bootstrap-keyring PACKAGE]
+	    [--cache true|false]
+	    [--cache-indices true|false]
+	    [--cache-packages true|false]
+	    [--cache-stages STAGE|"STAGES"]
+	    [--checksums md5|sha1|sha256|none]
+	    [--compression bzip2|gzip|lzip|xz|none]
+	    [--config GIT_URL::GIT_BRANCH]
+	    [--zsync true|false]
+	    [--build-with-chroot true|false]
+	    [--chroot-filesystem ext2|ext3|ext4|squashfs|jffs2|none]
+	    [--clean
+	    [-c|--conffile FILE]
+	    [--debconf-frontend dialog|editor|noninteractive|readline]
+	    [--debconf-nowarnings true|false]
+	    [--debconf-priority low|medium|high|critical]
+	    [--debian-installer true|cdrom|netinst|netboot|businesscard|live|false]
+	    [--debian-installer-distribution daily|CODENAME]
+	    [--debian-installer-preseedfile FILE|URL]
+	    [--debian-installer-gui true|false]
+	    [--debug]
+	    [-d|--distribution CODENAME]
+	    [--ext-block-size 1024|2048|4096]
+	    [--ext-resize-blocks N]
+	    [--ext-fudge-factor PERCENTAGE]
+	    [--parent-distribution CODENAME]
+	    [--parent-debian-installer-distribution CODENAME]
+	    [--dump]
+	    [--fdisk fdisk|fdisk.dist]
+	    [--force]
+	    [--grub-splash FILE]
+	    [--gzip-options OPTION|"OPTIONS"]
+	    [--hooks FILE]
+	    [--ignore-system-defaults]
+	    [--initramfs auto|none|live-boot|casper]
+	    [--initramfs-compression bzip2|gzip|lzma]
+	    [--initsystem sysvinit|runit|systemd|upstart|none]
+	    [--interactive shell]
+	    [--/usr/bin/isohybrid-options OPTION|"OPTIONS"]
+	    [--hdd-label LABEL]
+	    [--hdd-size MB]
+	    [--iso-application NAME]
+	    [--iso-preparer NAME]
+	    [--iso-publisher NAME]
+	    [--iso-volume NAME]
+	    [--jffs2-eraseblock SIZE]
+	    [--keyring-packages PACKAGE|"PACKAGES"]
+	    [-k|--linux-flavours FLAVOUR|"FLAVOURS"]
+	    [--linux-packages "PACKAGES"]
+	    [--losetup losetup|losetup.orig]
+	    [--memtest memtest86+|memtest86|none]
+	    [-m|--parent-mirror-bootstrap URL]
+	    [--parent-mirror-chroot URL]
+	    [--parent-mirror-chroot-security URL]
+	    [--parent-mirror-chroot-volatile URL]
+	    [--parent-mirror-chroot-backports URL]
+	    [--parent-mirror-binary URL]
+	    [--parent-mirror-binary-security URL]
+	    [--parent-mirror-binary-volatile URL]
+	    [--parent-mirror-binary-backports URL]
+	    [--parent-mirror-debian-installer URL]
+	    [--mirror-bootstrap URL]
+	    [--mirror-chroot URL]
+	    [--mirror-chroot-security URL]
+	    [--mirror-chroot-volatile URL]
+	    [--mirror-chroot-backports URL]
+	    [--mirror-binary URL]
+	    [--mirror-binary-security URL]
+	    [--mirror-binary-volatile URL]
+	    [--mirror-binary-backports URL]
+	    [--mirror-debian-installer URL]
+	    [--mode debian|emdebian|ubuntu|kubuntu]
+	    [--system live|normal]
+	    [--net-root-filesystem nfs|cfs]
+	    [--net-root-mountoptions OPTIONS]
+	    [--net-root-path PATH]
+	    [--net-root-server IP|HOSTNAME]
+	    [--net-cow-filesystem nfs|cfs]
+	    [--net-cow-mountoptions OPTIONS]
+	    [--net-cow-path PATH]
+	    [--net-cow-server IP|HOSTNAME]
+	    [--net-tarball true|false]
+	    [--quiet]
+	    [--root-command sudo]
+	    [--use-fakeroot true|false]
+	    [--archives ARCHIVE|"ARCHIVES"]
+	    [--archive-areas ARCHIVE_AREA|"ARCHIVE_AREAS"]
+	    [--parent-archive-areas ARCHIVE_AREA|"ARCHIVE_AREAS"]
+	    [--security true|false]
+	    [--source true|false]
+	    [-s|--source-images iso|netboot|tar|hdd]
+	    [--firmware-binary true|false]
+	    [--firmware-chroot true|false]
+	    [--swap-file-path PATH]
+	    [--swap-file-size MB]
+	    [--syslinux-theme THEME_SUFFIX]
+	    [--tasksel apt|aptitude|tasksel]
+	    [--templates PATH]
+	    [--volatile true|false]
+	    [--backports true|false]
+	    [--exposed-root true|false]
+	    [--verbose]
+	    [--win32-loader true|false]
+	    [--bootstrap-qemu-exclude PACKAGES]
+	    [--bootstrap-qemu-static PATH]
+	    [--bootstrap-qemu-arch ARCH]
+
+  lb config [-h|--help]
+  lb config [-u|--usage]
+  lb config [-v|--version]
+
+Report bugs to Debian Live project <http://live.debian.net/>.
+=== lb config help mirror grep ===
+	    [-b|--binary-images iso|iso-hybrid|netboot|tar|hdd]
+	    [-m|--parent-mirror-bootstrap URL]
+	    [--parent-mirror-chroot URL]
+	    [--parent-mirror-chroot-security URL]
+	    [--parent-mirror-chroot-volatile URL]
+	    [--parent-mirror-chroot-backports URL]
+	    [--parent-mirror-binary URL]
+	    [--parent-mirror-binary-security URL]
+	    [--parent-mirror-binary-volatile URL]
+	    [--parent-mirror-binary-backports URL]
+	    [--parent-mirror-debian-installer URL]
+	    [--mirror-bootstrap URL]
+	    [--mirror-chroot URL]
+	    [--mirror-chroot-security URL]
+	    [--mirror-chroot-volatile URL]
+	    [--mirror-chroot-backports URL]
+	    [--mirror-binary URL]
+	    [--mirror-binary-security URL]
+	    [--mirror-binary-volatile URL]
+	    [--mirror-binary-backports URL]
+	    [--mirror-debian-installer URL]
+	    [--security true|false]
+=== package list ===
+# Hydro Desk OS intentionally exposes only two graphical applications:
+# Google Chrome and PCManFM file manager.
+# The remaining packages are the minimum OS plumbing for live boot, graphics,
+# networking, USB/media mounting, fonts, and the automatic X session.
+
+linux-image-amd64
+live-boot
+live-config
+systemd-sysv
+sudo
+locales
+
+xserver-xorg
+xinit
+x11-xserver-utils
+dbus-x11
+openbox
+pcmanfm
+shared-mime-info
+desktop-file-utils
+xdg-user-dirs
+adwaita-icon-theme
+hicolor-icon-theme
+fonts-dejavu-core
+fonts-liberation
+fonts-noto-core
+fonts-noto-color-emoji
+
+ca-certificates
+network-manager
+wpasupplicant
+udisks2
+gvfs
+gvfs-backends
+polkitd
+=== archives ===
+total 16
+drwxr-xr-x 2 runner runner 4096 Aug  6 05:25 .
+drwxr-xr-x 6 runner runner 4096 Aug  6 05:25 ..
+-rw-r--r-- 1 runner runner  105 Aug  6 05:25 debian-security.list.binary
+-rw-r--r-- 1 runner runner  105 Aug  6 05:25 debian-security.list.chroot
+deb http://security.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware
+deb http://security.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware
+=== hooks ===
+total 20
+drwxr-xr-x 2 runner runner 4096 Aug  6 05:25 .
+drwxr-xr-x 3 runner runner 4096 Aug  6 05:25 ..
+-rwxr-xr-x 1 runner runner 2243 Aug  6 05:25 010-install-google-chrome.hook.chroot
+-rwxr-xr-x 1 runner runner  753 Aug  6 05:25 020-lock-desktop-to-two-apps.hook.chroot
+-rwxr-xr-x 1 runner runner  415 Aug  6 05:25 030-clean-image.hook.chroot
